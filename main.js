@@ -1,5 +1,7 @@
 // shared resources
 let result = 0
+let sum1 = 0
+let sum2 = 0
 
 // queue implementation
 function queue(worker) {
@@ -14,9 +16,9 @@ function queue(worker) {
     isWorking = true
     const item = queueItems.shift()
 
-    worker(item.data, function(value) {
+    worker(item.data, function(value, delay) {
       isWorking = false
-      setTimeout(item.callback, 0, value)
+      setTimeout(item.callback, 0, value, delay)
       runNext()
     })
   }
@@ -30,33 +32,44 @@ function queue(worker) {
   }
 }
 
-function updateDom(value) {
-  const resultElement = document.querySelector('#result')
-  resultElement.innerHTML = value
+function updateDom(id, value) {
+  const el = document.querySelector(id)
+  el.innerHTML = value
 }
 
 function someWorker(value, done) {
   // simulate async action
+  const delay = Math.ceil(Math.random() * 3000)
+
   setTimeout(() => {
     result += value
-    updateDom(result)
-    done(value)
-  }, Math.random() * 3000)
+    updateDom('#result', result)
+    done(value, delay)
+  }, delay)
 }
 
 const updateWorker = queue(someWorker)
 const button1 = document.querySelector('#button1')
 const button2 = document.querySelector('#button2')
-updateDom(result)
+
+updateDom('#result', result)
+updateDom('#sum1', sum1)
+updateDom('#sum2', sum2)
 
 button1.addEventListener('click', () => {
-  updateWorker(1, value => {
-    console.log(`done, plus ${value}`)
+  sum1 += 1
+  updateDom('#sum1', sum1)
+
+  updateWorker(1, (value, delay) => {
+    console.log(`done, plus ${value}, result: ${result}, delayed ${delay}ms`)
   })
 })
 
 button2.addEventListener('click', () => {
-  updateWorker(2, value => {
-    console.log(`done, plus ${value}`)
+  sum2 += 2
+  updateDom('#sum2', sum2)
+
+  updateWorker(2, (value, delay) => {
+    console.log(`done, plus ${value}, result: ${result}, delayed ${delay}ms`)
   })
 })
